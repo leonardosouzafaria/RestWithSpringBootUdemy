@@ -1,64 +1,45 @@
 package br.com.erudio.services;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.erudio.exception.ResourceNotFoundException;
 import br.com.erudio.model.Person;
+import br.com.erudio.repository.PersonRepository;
 
 @Service
-public class PersonService {
+public class PersonService {	
 	
-	private final AtomicLong counter = new AtomicLong();
+	@Autowired
+	private PersonRepository personRepository;
 	
-	public Person findById(String id) {
-		
-		Person person = new Person();
-		
-		person.setId(counter.incrementAndGet());
-		person.setAdress("Rua dos bobos");
-		person.setFirstName("Leo");
-		person.setGender("Masculino");
-		person.setLastName("Souza");	
-		
-		return person;
+	public Person findById(Long id) {
+		return personRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Person not found for this ID."));
 	}
 
 	public List<Person> findAll() {
-		List<Person> list = new ArrayList<Person>();
-		
-		for(int i = 0; i < 8; i++) {
-			list.add(mockPerson(i));			
-		}
-		
-		return list;
+		return personRepository.findAll();
 	}
-
-	private Person mockPerson(int i) {
-		
-		Person person = new Person();
-		
-		person.setId(counter.incrementAndGet());
-		person.setAdress("some Address");
-		person.setFirstName("Person name " + i);
-		person.setGender("male");
-		person.setLastName("some Last name");	
-		
-		return person;
-	}
+	
 
 	public Person create(Person person) {
-		person.setId(counter.incrementAndGet());
-		return person;
+		return personRepository.save(person);
 	}
 	
 	public Person update(Person person) {
-		return person;
+		Person entity = personRepository.findById(person.getId()).orElseThrow(() -> new ResourceNotFoundException("Person not found for this ID."));
+		
+		entity.setFirstName(person.getFirstName());
+		entity.setLastName(person.getLastName());
+		entity.setAdress(person.getAdress());
+		entity.setGender(person.getGender());
+		
+		return personRepository.save(entity);		
 	}
 	
-	public void delete(String id) {
-		
+	public void delete(Long id) {		
+		personRepository.deleteById(id);
 	}
 }
